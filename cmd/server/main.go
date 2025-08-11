@@ -10,6 +10,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gusram01/linked-bookmarks/internal/healthcheck"
+	"github.com/gusram01/linked-bookmarks/internal/link/infra"
 	"github.com/gusram01/linked-bookmarks/internal/platform/config"
 )
 
@@ -22,6 +23,7 @@ func main(){
 	app.Use(cors.New())
 
     healthcheck.Bootstrap(app)
+    infra.Bootstrap(app)
 
 	p := config.Config("GC_MARK_PORT")
 
