@@ -5,26 +5,25 @@ import (
 	"github.com/gusram01/linked-bookmarks/internal/link/domain"
 )
 
-type CreateOneLink struct {
+type GetOneByIdLink struct {
     r domain.LinkRepository
 }
 
-func NewCreateOneLinkUse(r domain.LinkRepository) *CreateOneLink {
-    return &CreateOneLink{
+func NewGetOneByIdLinkUse(r domain.LinkRepository) *GetOneByIdLink {
+    return &GetOneByIdLink{
         r: r,
     }
 }
 
-func (uc *CreateOneLink) Execute(r domain.LinkRequest) (domain.Link, error) {
-    if err := r.Validate(); err != nil {
+func (uc *GetOneByIdLink) Execute(id uint) (domain.Link, error) {
+    if id <= 0 {
         return domain.Link{}, internal.NewErrorf(
             internal.ErrorCodeInvalidField,
-            "CreateLink::Invalid::URL::%s",
-            r.Url,
+            "GetOneByIdLink::Invalid::ID::%d",
+            id,
         )
     }
 
     // TODO: handle database errors and mapping to internal.ErrorCode
-    return uc.r.Create(r)
+    return uc.r.GetOneById(id)
 }
-

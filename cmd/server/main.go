@@ -11,6 +11,7 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gusram01/linked-bookmarks/internal/healthcheck"
 	links "github.com/gusram01/linked-bookmarks/internal/link/infra"
+	linksHttp "github.com/gusram01/linked-bookmarks/internal/link/infra/http"
 	"github.com/gusram01/linked-bookmarks/internal/platform/config"
 	"github.com/gusram01/linked-bookmarks/internal/platform/database"
 )
@@ -26,7 +27,7 @@ func main(){
     database.Initialize(&links.LinkModel{})
 
     healthcheck.Bootstrap(app)
-    links.Bootstrap(app)
+    linksHttp.Bootstrap(app)
 
 	p := config.Config("GC_MARK_PORT")
 

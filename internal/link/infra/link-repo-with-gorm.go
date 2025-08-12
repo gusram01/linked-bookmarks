@@ -38,13 +38,27 @@ func (lr *LinkRepoWithGorm) Create(r domain.LinkRequest) (domain.Link, error){
     }, nil
 }
 
-func (lr *LinkRepoWithGorm)    GetOneById(id string) (domain.LinkResponse, error){
+func (lr *LinkRepoWithGorm)    GetOneById(id uint) (domain.Link, error){
 
-    return domain.LinkResponse{}, nil
+    var link LinkModel
+
+    result := lr.db.First(&link, id)
+
+    if result.Error != nil {
+        return domain.Link{}, result.Error
+    }
+
+    return domain.Link{
+        ID: link.ID,
+        Url: link.Url,
+        CreatedAt: link.CreatedAt,
+        UpdatedAt: link.UpdatedAt,
+        DeletedAt: link.DeletedAt.Time,
+    }, nil
 }
 
-func (lr *LinkRepoWithGorm)    GetAll() (domain.LinkResponse, error) {
+func (lr *LinkRepoWithGorm)    GetAll() ([]domain.Link, error) {
 
-    return domain.LinkResponse{}, nil
+    return []domain.Link{}, nil
 }
 

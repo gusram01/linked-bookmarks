@@ -35,6 +35,6 @@ type LinkResponse struct {
 
 type LinkRepository interface {
     Create(r LinkRequest) (Link, error)
-    GetOneById(id string) (LinkResponse, error)
-    GetAll() (LinkResponse, error)
+    GetOneById(id uint) (Link, error)
+    GetAll() ([]Link, error)
 }
