@@ -1,6 +1,10 @@
 # Created by https://www.toptal.com/developers/gitignore/api/linux,macos,windows,visualstudiocode,intellij+all,goland+all,go,sublimetext,vim,dotenv
 # Edit at https://www.toptal.com/developers/gitignore?templates=linux,macos,windows,visualstudiocode,intellij+all,goland+all,go,sublimetext,vim,dotenv
 
+### air ###
+
+tmp
+
 ### dotenv ###
 .env
 

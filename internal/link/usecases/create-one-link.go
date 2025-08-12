@@ -14,9 +14,9 @@ func NewCreateOneLinkUse(r domain.LinkRepository) *CreateOneLink {
     }
 }
 
-func (uc *CreateOneLink) Execute(r domain.LinkRequest) error {
+func (uc *CreateOneLink) Execute(r domain.LinkRequest) (domain.Link, error) {
     if err := r.Validate(); err != nil {
-        return err
+        return domain.Link{}, err
     }
 
     return uc.r.Create(r)

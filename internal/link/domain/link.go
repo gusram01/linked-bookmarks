@@ -1,8 +1,19 @@
 package domain
 
-import "net/url"
+import (
+	"net/url"
+	"time"
+)
 
 type UrlLink string
+
+type Link struct {
+    ID uint
+    Url string
+    CreatedAt time.Time
+    UpdatedAt time.Time
+    DeletedAt time.Time
+}
 
 type LinkRequest struct {
     Url UrlLink `json:"url"`;
@@ -23,7 +34,7 @@ type LinkResponse struct {
 }
 
 type LinkRepository interface {
-    Create(r LinkRequest) error
+    Create(r LinkRequest) (Link, error)
     GetOneById(id string) (LinkResponse, error)
     GetAll() (LinkResponse, error)
 }

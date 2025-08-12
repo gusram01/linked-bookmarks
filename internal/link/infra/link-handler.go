@@ -47,7 +47,7 @@ func (lh *LinkHandler) createOne(c *fiber.Ctx) error{
     }
 
 
-    ucErr := lh.createOneUC.Execute(*req)
+    link, ucErr := lh.createOneUC.Execute(*req)
 
     if ucErr != nil {
         return c.Status(400).JSON(
@@ -62,7 +62,7 @@ func (lh *LinkHandler) createOne(c *fiber.Ctx) error{
         fiber.Map{
             "success": true,
             "error": nil,
-            "data": nil,
+            "data": link.ID,
         },
     )
 

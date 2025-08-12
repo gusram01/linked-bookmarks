@@ -2,35 +2,23 @@ package database
 
 import (
 	"fmt"
-	"strconv"
 
 	"github.com/gusram01/linked-bookmarks/internal/platform/config"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
 
-func Initialize() {
-
-	var err error
-
-	p := config.Config("GC_MARK_PORT")
-	port, parsePortErr := strconv.ParseUint(p, 10, 32)
-
-	if parsePortErr != nil {
-		panic("DB::PORT::parsing::err")
-	}
-
-
+func Initialize(models ...interface{}) {
 	dsn := fmt.Sprintf(
-		"host=db port=%d user=%s password=%s dbname=%s sslmode=disable",
-		port,
-		config.Config("DB_USER"),
-		config.Config("DB_PASSWORD"),
-		config.Config("DB_NAME"),
+		"host=%s user=%s password=%s dbname=%s sslmode=%s" ,
+        config.Config("GC_MARK_DB_HOST"),
+		config.Config("GC_MARK_DB_USER"),
+		config.Config("GC_MARK_DB_PASS"),
+		config.Config("GC_MARK_DB_NAME"),
+		config.Config("GC_MARK_DB_SSL_MODE"),
 	)
 
-
-	DB, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
+	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 
 	if err != nil {
 		panic(fmt.Sprintf("DB::init::failed::%s", err.Error()))
@@ -39,7 +27,10 @@ func Initialize() {
 
 	fmt.Println("DB connection initialized")
 
-	DB.AutoMigrate()
+    if models != nil {
+        db.AutoMigrate(models...)
+        fmt.Println("DB migrated")
+    }
 
-	fmt.Println("DB migrated")
+    DB = db
 }

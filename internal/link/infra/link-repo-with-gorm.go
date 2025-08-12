@@ -5,6 +5,11 @@ import (
 	"gorm.io/gorm"
 )
 
+type LinkModel struct {
+    gorm.Model
+    Url string `gorm:"index:idx_link_models_url,unique"`
+}
+
 type LinkRepoWithGorm struct {
     db *gorm.DB
 }
@@ -15,9 +20,22 @@ func NewLinkRepoWithGorm(db *gorm.DB) *LinkRepoWithGorm {
     }
 }
 
-func (lr *LinkRepoWithGorm) Create(r domain.LinkRequest) error{
+func (lr *LinkRepoWithGorm) Create(r domain.LinkRequest) (domain.Link, error){
+    link := LinkModel{Url: string(r.Url)}
 
-    return nil
+    result := lr.db.Create(&link)
+
+    if result.Error != nil {
+        return domain.Link{}, result.Error
+    }
+
+    return domain.Link{
+        ID: link.ID,
+        Url: link.Url,
+        CreatedAt: link.CreatedAt,
+        UpdatedAt: link.UpdatedAt,
+        DeletedAt: link.DeletedAt.Time,
+    }, nil
 }
 
 func (lr *LinkRepoWithGorm)    GetOneById(id string) (domain.LinkResponse, error){
@@ -29,3 +47,4 @@ func (lr *LinkRepoWithGorm)    GetAll() (domain.LinkResponse, error) {
 
     return domain.LinkResponse{}, nil
 }
+
