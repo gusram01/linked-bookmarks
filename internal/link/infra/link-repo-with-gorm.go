@@ -38,7 +38,7 @@ func (lr *LinkRepoWithGorm) Create(r domain.LinkRequest) (domain.Link, error){
     }, nil
 }
 
-func (lr *LinkRepoWithGorm)    GetOneById(id uint) (domain.Link, error){
+func (lr *LinkRepoWithGorm) GetOneById(id uint) (domain.Link, error){
 
     var link LinkModel
 
@@ -59,6 +59,23 @@ func (lr *LinkRepoWithGorm)    GetOneById(id uint) (domain.Link, error){
 
 func (lr *LinkRepoWithGorm)    GetAll() ([]domain.Link, error) {
 
-    return []domain.Link{}, nil
+    var links []LinkModel
+
+    result := lr.db.Where("deleted_at IS null").Find(&links)
+
+    if result.Error != nil {
+        return []domain.Link{}, result.Error
+    }
+
+    var domainLinks []domain.Link
+
+    for _, link := range links {
+        domainLinks = append(domainLinks, domain.Link{
+            ID: link.ID,
+            Url: link.Url,
+        })
+    }
+
+    return domainLinks, nil
 }
 

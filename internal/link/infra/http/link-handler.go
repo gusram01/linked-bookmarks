@@ -12,15 +12,18 @@ import (
 type LinkHandler struct {
     createOneUC usecases.BaseUseCase[domain.LinkRequest, domain.Link]
     getOneByIdUC usecases.BaseUseCase[uint, domain.Link]
+    getAllUC usecases.BaseUseCase[struct{}, []domain.Link]
 }
 
 func newLinkHandler(
     createUc usecases.BaseUseCase[domain.LinkRequest, domain.Link],
     getOneUc usecases.BaseUseCase[uint, domain.Link],
+    getAll usecases.BaseUseCase[struct{}, []domain.Link],
     ) *LinkHandler {
     return &LinkHandler{
         createOneUC: createUc,
         getOneByIdUC: getOneUc,
+        getAllUC: getAll,
     }
 }
 
@@ -29,15 +32,16 @@ func (lh *LinkHandler) registerRoutes(r fiber.Router) {
 
     lRouter.Post("/", lh.createOne)
     lRouter.Get("/:id", lh.getOne)
-
+    lRouter.Get("/", lh.getAll)
 }
 
 func Bootstrap(r fiber.Router) {
     repo := infra.NewLinkRepoWithGorm(database.DB)
     createUC := usecases.NewCreateOneLinkUse(repo)
     getOneUC := usecases.NewGetOneByIdLinkUse(repo)
+    getAllUC := usecases.NewGetAllLinksUse(repo)
 
-    newLinkHandler(createUC, getOneUC).registerRoutes(r)
+    newLinkHandler(createUC, getOneUC, getAllUC).registerRoutes(r)
 }
 
 
@@ -109,6 +113,36 @@ func (lh *LinkHandler) getOne(c *fiber.Ctx) error {
                 "id": link.ID,
                 "url": link.Url,
             },
+        },
+    )
+}
+
+func (lh *LinkHandler) getAll(c *fiber.Ctx) error {
+    links, ucErr := lh.getAllUC.Execute(struct{}{})
+
+
+    if ucErr != nil {
+        return c.Status(500).JSON(
+            fiber.Map{
+                "success": false,
+                "error": ucErr.Error(),
+                "data": nil,
+            })
+    }
+
+    var responseLinks []fiber.Map
+    for _, link := range links {
+        responseLinks = append(responseLinks, fiber.Map{
+            "id": link.ID,
+            "url": link.Url,
+        })
+    }
+
+    return c.Status(200).JSON(
+        fiber.Map{
+            "success": true,
+            "error": nil,
+            "data": responseLinks,
         },
     )
 }
