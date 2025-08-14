@@ -7,6 +7,7 @@ import (
 	"os/signal"
 	"syscall"
 
+	"github.com/clerk/clerk-sdk-go/v2"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gusram01/linked-bookmarks/internal/healthcheck"
@@ -17,12 +18,14 @@ import (
 )
 
 func main(){
+
 	app := fiber.New(fiber.Config{
 		Prefork: true,
 		AppName: "linked-bookmarks",
 	})
 
 	app.Use(cors.New())
+    clerk.SetKey(config.Config("GC_MARK_AUTH_KEY"))
 
     database.Initialize(&links.LinkModel{})
 
