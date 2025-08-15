@@ -1,0 +1,17 @@
+services:
+  linked-bookmarks-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: linked-bookmarks-api
+    restart: unless-stopped
+    ports:
+      - "4200:4200"
+    env_file:
+      - .env
+    networks:
+      - orchestrator-own
+
+networks:
+  orchestrator-own:
+    external: true
