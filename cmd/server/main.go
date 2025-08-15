@@ -20,7 +20,7 @@ import (
 func main() {
 
 	app := fiber.New(fiber.Config{
-		// Prefork: true,
+		Prefork: true,
 		AppName: "linked-bookmarks",
 	})
 
@@ -35,11 +35,6 @@ func main() {
 	p := config.Config("GC_MARK_PORT")
 
 	go func() {
-		/*
-		* TODO: the prefork setting is creating multiple
-		* process in the same port. How handle this
-		* to prevent unexpected behaviors in prod ??
-		 */
 		fmt.Printf("start listen on port: %s \n", p)
 		if err := app.Listen(fmt.Sprintf(":%s", p)); err != nil {
 			log.Panic(err)
