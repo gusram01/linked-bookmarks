@@ -17,6 +17,7 @@ import (
 	linksHttp "github.com/gusram01/linked-bookmarks/internal/link/infra/http"
 	"github.com/gusram01/linked-bookmarks/internal/platform/config"
 	"github.com/gusram01/linked-bookmarks/internal/platform/database"
+	"github.com/gusram01/linked-bookmarks/internal/platform/logger"
 	storagekv "github.com/gusram01/linked-bookmarks/internal/platform/storage-kv"
 )
 
@@ -40,6 +41,8 @@ func main() {
 		},
 		Storage: storagekv.GetStorage(),
 	}))
+
+	app.Use(logger.SetupFiberLogger())
 	clerk.SetKey(config.Config("GC_MARK_AUTH_KEY"))
 
 	database.Initialize(&links.LinkModel{})
