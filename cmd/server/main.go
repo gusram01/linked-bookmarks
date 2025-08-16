@@ -18,6 +18,7 @@ import (
 	"github.com/gusram01/linked-bookmarks/internal/platform/config"
 	"github.com/gusram01/linked-bookmarks/internal/platform/database"
 	"github.com/gusram01/linked-bookmarks/internal/platform/logger"
+	"github.com/gusram01/linked-bookmarks/internal/platform/observability"
 	storagekv "github.com/gusram01/linked-bookmarks/internal/platform/storage-kv"
 )
 
@@ -30,6 +31,8 @@ func main() {
 	app.Use(cors.New())
 	app.Use(helmet.New())
 	app.Use(healthcheck.New())
+	app.Use(logger.SetupFiberLogger())
+	app.Use(observability.SentryMiddleware())
 
 	app.Use(limiter.New(limiter.Config{
 		LimitReached: func(c *fiber.Ctx) error {
@@ -42,7 +45,6 @@ func main() {
 		Storage: storagekv.GetStorage(),
 	}))
 
-	app.Use(logger.SetupFiberLogger())
 	clerk.SetKey(config.Config("GC_MARK_AUTH_KEY"))
 
 	database.Initialize(&links.LinkModel{})
