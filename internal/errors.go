@@ -19,28 +19,30 @@ const (
 	ErrorCodeUnknown ErrorCode = iota
 	ErrorCodeNotFound
 	ErrorCodeInvalidArgument
-    ErrorCodeAlreadyExists
-    ErrorCodeInternal
-    ErrorCodeUnavailable
-    ErrorCodeDeadlineExceeded
-    ErrorCodeUnauthenticated
-    ErrorCodePermissionDenied
-    ErrorCodeFailedPrecondition
-    ErrorCodeResourceExhausted
-    ErrorCodeUnimplemented
-    ErrorCodeCanceled
-    ErrorCodeDataLoss
-    ErrorCodeUncategorized
-    ErrorCodeInvalidField
-    ErrorCodeDBUniqueConstraintViolation
-    ErrorCodeDBForeignKeyViolation
-    ErrorCodeDBConnectionError
-    ErrorCodeDBTimeout
-    ErrorCodeDBQueryError
-    ErrorCodeDBTransactionError
-    ErrorCodeDBRecordNotFound
-    ErrorCodeDBMigrationError
-    ErrorCodeDBUnknownError
+	ErrorCodeAlreadyExists
+	ErrorCodeInternal
+	ErrorCodeUnavailable
+	ErrorCodeDeadlineExceeded
+	ErrorCodeUnauthenticated
+	ErrorCodePermissionDenied
+	ErrorCodeFailedPrecondition
+	ErrorCodeResourceExhausted
+	ErrorCodeUnimplemented
+	ErrorCodeCanceled
+	ErrorCodeDataLoss
+	ErrorCodeUncategorized
+	ErrorCodeInvalidField
+	ErrorCodeDBUniqueConstraintViolation
+	ErrorCodeDBForeignKeyViolation
+	ErrorCodeDBConnectionError
+	ErrorCodeDBTimeout
+	ErrorCodeDBQueryError
+	ErrorCodeDBTransactionError
+	ErrorCodeDBRecordNotFound
+	ErrorCodeDBMigrationError
+	ErrorCodeDBUnknownError
+	ErrorCodeParsingClaims
+	ErrorCodeInvalidClaims
 )
 
 // WrapErrorf returns a wrapped error.

@@ -6,24 +6,24 @@ import (
 )
 
 type GetOneByIdLink struct {
-    r domain.LinkRepository
+	r domain.LinkRepository
 }
 
 func NewGetOneByIdLinkUse(r domain.LinkRepository) *GetOneByIdLink {
-    return &GetOneByIdLink{
-        r: r,
-    }
+	return &GetOneByIdLink{
+		r: r,
+	}
 }
 
-func (uc *GetOneByIdLink) Execute(id uint) (domain.Link, error) {
-    if id <= 0 {
-        return domain.Link{}, internal.NewErrorf(
-            internal.ErrorCodeInvalidField,
-            "GetOneByIdLink::Invalid::ID::%d",
-            id,
-        )
-    }
+func (uc *GetOneByIdLink) Execute(r domain.GetLinkRequestDto) (domain.Link, error) {
+	if r.ID <= 0 {
+		return domain.Link{}, internal.NewErrorf(
+			internal.ErrorCodeInvalidField,
+			"GetOneByIdLink::Invalid::ID::%d",
+			r.ID,
+		)
+	}
 
-    // TODO: handle database errors and mapping to internal.ErrorCode
-    return uc.r.GetOneById(id)
+	// TODO: handle database errors and mapping to internal.ErrorCode
+	return uc.r.GetOneById(r)
 }

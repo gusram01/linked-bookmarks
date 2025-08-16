@@ -1,11 +1,14 @@
-package platform
+package auth
 
 import (
 	"strings"
 
+	"github.com/clerk/clerk-sdk-go/v2"
 	"github.com/clerk/clerk-sdk-go/v2/jwt"
 	"github.com/clerk/clerk-sdk-go/v2/user"
 	"github.com/gofiber/fiber/v2"
+	"github.com/gusram01/linked-bookmarks/internal"
+	"github.com/gusram01/linked-bookmarks/internal/platform/logger"
 )
 
 func JwtClerkMiddleware() fiber.Handler {
@@ -49,6 +52,27 @@ func JwtClerkMiddleware() fiber.Handler {
 			})
 		}
 
+		c.SetUserContext(
+			clerk.ContextWithSessionClaims(c.UserContext(), claims),
+		)
+
 		return c.Next()
 	}
+}
+
+func WithSessionClaims(c *fiber.Ctx) (clerk.SessionClaims, error) {
+	claims, ok := clerk.SessionClaimsFromContext(c.UserContext())
+
+	if !ok {
+		logger.GetLogger().Error("Failed to get session claims")
+
+		return clerk.SessionClaims{}, internal.NewErrorf(internal.ErrorCodeInvalidClaims, "Unauthorized")
+	}
+
+	if claims == nil {
+		logger.GetLogger().Error("Session claims are nil")
+		return clerk.SessionClaims{}, internal.NewErrorf(internal.ErrorCodeInvalidClaims, "Unauthorized")
+	}
+
+	return *claims, nil
 }

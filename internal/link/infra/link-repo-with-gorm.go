@@ -6,76 +6,75 @@ import (
 )
 
 type LinkModel struct {
-    gorm.Model
-    Url string `gorm:"index:idx_link_models_url,unique"`
+	gorm.Model
+	Url string `gorm:"index:idx_link_models_url,unique"`
 }
 
 type LinkRepoWithGorm struct {
-    db *gorm.DB
+	db *gorm.DB
 }
 
 func NewLinkRepoWithGorm(db *gorm.DB) *LinkRepoWithGorm {
-    return &LinkRepoWithGorm{
-        db: db,
-    }
+	return &LinkRepoWithGorm{
+		db: db,
+	}
 }
 
-func (lr *LinkRepoWithGorm) Create(r domain.LinkRequest) (domain.Link, error){
-    link := LinkModel{Url: string(r.Url)}
+func (lr *LinkRepoWithGorm) Create(r domain.NewLinkRequestDto) (domain.Link, error) {
+	link := LinkModel{Url: string(r.Url)}
 
-    result := lr.db.Create(&link)
+	result := lr.db.Create(&link)
 
-    if result.Error != nil {
-        return domain.Link{}, result.Error
-    }
+	if result.Error != nil {
+		return domain.Link{}, result.Error
+	}
 
-    return domain.Link{
-        ID: link.ID,
-        Url: link.Url,
-        CreatedAt: link.CreatedAt,
-        UpdatedAt: link.UpdatedAt,
-        DeletedAt: link.DeletedAt.Time,
-    }, nil
+	return domain.Link{
+		ID:        link.ID,
+		Url:       link.Url,
+		CreatedAt: link.CreatedAt,
+		UpdatedAt: link.UpdatedAt,
+		DeletedAt: link.DeletedAt.Time,
+	}, nil
 }
 
-func (lr *LinkRepoWithGorm) GetOneById(id uint) (domain.Link, error){
+func (lr *LinkRepoWithGorm) GetOneById(r domain.GetLinkRequestDto) (domain.Link, error) {
 
-    var link LinkModel
+	var link LinkModel
 
-    result := lr.db.First(&link, id)
+	result := lr.db.First(&link, r.ID)
 
-    if result.Error != nil {
-        return domain.Link{}, result.Error
-    }
+	if result.Error != nil {
+		return domain.Link{}, result.Error
+	}
 
-    return domain.Link{
-        ID: link.ID,
-        Url: link.Url,
-        CreatedAt: link.CreatedAt,
-        UpdatedAt: link.UpdatedAt,
-        DeletedAt: link.DeletedAt.Time,
-    }, nil
+	return domain.Link{
+		ID:        link.ID,
+		Url:       link.Url,
+		CreatedAt: link.CreatedAt,
+		UpdatedAt: link.UpdatedAt,
+		DeletedAt: link.DeletedAt.Time,
+	}, nil
 }
 
-func (lr *LinkRepoWithGorm)    GetAll() ([]domain.Link, error) {
+func (lr *LinkRepoWithGorm) GetAll(cs string) ([]domain.Link, error) {
 
-    var links []LinkModel
+	var links []LinkModel
 
-    result := lr.db.Where("deleted_at IS null").Find(&links)
+	result := lr.db.Where("deleted_at IS null").Find(&links)
 
-    if result.Error != nil {
-        return []domain.Link{}, result.Error
-    }
+	if result.Error != nil {
+		return []domain.Link{}, result.Error
+	}
 
-    var domainLinks []domain.Link
+	var domainLinks []domain.Link
 
-    for _, link := range links {
-        domainLinks = append(domainLinks, domain.Link{
-            ID: link.ID,
-            Url: link.Url,
-        })
-    }
+	for _, link := range links {
+		domainLinks = append(domainLinks, domain.Link{
+			ID:  link.ID,
+			Url: link.Url,
+		})
+	}
 
-    return domainLinks, nil
+	return domainLinks, nil
 }
-

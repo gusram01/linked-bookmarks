@@ -5,20 +5,20 @@ import (
 	"github.com/gusram01/linked-bookmarks/internal/link/domain"
 	"github.com/gusram01/linked-bookmarks/internal/link/infra"
 	"github.com/gusram01/linked-bookmarks/internal/link/usecases"
-	"github.com/gusram01/linked-bookmarks/internal/platform"
+	"github.com/gusram01/linked-bookmarks/internal/platform/auth"
 	"github.com/gusram01/linked-bookmarks/internal/platform/database"
 )
 
 type LinkHandler struct {
-	createOneUC  usecases.BaseUseCase[domain.LinkRequest, domain.Link]
-	getOneByIdUC usecases.BaseUseCase[uint, domain.Link]
-	getAllUC     usecases.BaseUseCase[struct{}, []domain.Link]
+	createOneUC  usecases.BaseUseCase[domain.NewLinkRequestDto, domain.Link]
+	getOneByIdUC usecases.BaseUseCase[domain.GetLinkRequestDto, domain.Link]
+	getAllUC     usecases.BaseUseCase[string, []domain.Link]
 }
 
 func newLinkHandler(
-	createUc usecases.BaseUseCase[domain.LinkRequest, domain.Link],
-	getOneUc usecases.BaseUseCase[uint, domain.Link],
-	getAll usecases.BaseUseCase[struct{}, []domain.Link],
+	createUc usecases.BaseUseCase[domain.NewLinkRequestDto, domain.Link],
+	getOneUc usecases.BaseUseCase[domain.GetLinkRequestDto, domain.Link],
+	getAll usecases.BaseUseCase[string, []domain.Link],
 ) *LinkHandler {
 	return &LinkHandler{
 		createOneUC:  createUc,
@@ -30,7 +30,7 @@ func newLinkHandler(
 func (lh *LinkHandler) registerRoutes(r fiber.Router) {
 	lRouter := r.Group("api/links")
 
-	lRouter.Use(platform.JwtClerkMiddleware())
+	lRouter.Use(auth.JwtClerkMiddleware())
 	lRouter.Post("/", lh.createOne)
 	lRouter.Get("/:id", lh.getOne)
 	lRouter.Get("/", lh.getAll)
@@ -46,7 +46,7 @@ func Bootstrap(r fiber.Router) {
 }
 
 func (lh *LinkHandler) createOne(c *fiber.Ctx) error {
-	req := new(domain.LinkRequest)
+	req := new(domain.NewLinkRequestDto)
 
 	if err := c.BodyParser(req); err != nil {
 		return c.Status(400).JSON(
@@ -56,6 +56,17 @@ func (lh *LinkHandler) createOne(c *fiber.Ctx) error {
 				"data":    nil,
 			})
 	}
+
+	claims, err := auth.WithSessionClaims(c)
+	if err != nil {
+		return c.Status(401).JSON(
+			fiber.Map{
+				"success": false,
+				"error":   err.Error(),
+				"data":    nil,
+			})
+	}
+	req.Subject = claims.Subject
 
 	link, ucErr := lh.createOneUC.Execute(*req)
 
@@ -93,7 +104,21 @@ func (lh *LinkHandler) getOne(c *fiber.Ctx) error {
 			})
 	}
 
-	link, ucErr := lh.getOneByIdUC.Execute(uint(id))
+	claims, cErr := auth.WithSessionClaims(c)
+
+	if cErr != nil {
+		return c.Status(401).JSON(
+			fiber.Map{
+				"success": false,
+				"error":   cErr.Error(),
+				"data":    nil,
+			})
+	}
+
+	link, ucErr := lh.getOneByIdUC.Execute(domain.GetLinkRequestDto{
+		ID:      uint(id),
+		Subject: claims.Subject,
+	})
 
 	if ucErr != nil {
 		return c.Status(404).JSON(
@@ -117,7 +142,17 @@ func (lh *LinkHandler) getOne(c *fiber.Ctx) error {
 }
 
 func (lh *LinkHandler) getAll(c *fiber.Ctx) error {
-	links, ucErr := lh.getAllUC.Execute(struct{}{})
+	claims, err := auth.WithSessionClaims(c)
+	if err != nil {
+		return c.Status(401).JSON(
+			fiber.Map{
+				"success": false,
+				"error":   err.Error(),
+				"data":    nil,
+			})
+	}
+
+	links, ucErr := lh.getAllUC.Execute(claims.Subject)
 
 	if ucErr != nil {
 		return c.Status(500).JSON(

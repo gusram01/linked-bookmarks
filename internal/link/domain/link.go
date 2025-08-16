@@ -8,33 +8,39 @@ import (
 type UrlLink string
 
 type Link struct {
-    ID uint
-    Url string
-    CreatedAt time.Time
-    UpdatedAt time.Time
-    DeletedAt time.Time
+	ID        uint
+	Url       string
+	CreatedAt time.Time
+	UpdatedAt time.Time
+	DeletedAt time.Time
 }
 
-type LinkRequest struct {
-    Url UrlLink `json:"url"`;
+type NewLinkRequestDto struct {
+	Url     UrlLink `json:"url"`
+	Subject string  `json:"subject"`
 }
 
-func (ul *LinkRequest) Validate() error {
-    if _, err := url.ParseRequestURI(string(ul.Url)); err != nil {
-        return err
-    }
+type GetLinkRequestDto struct {
+	ID      uint   `json:"id"`
+	Subject string `json:"subject"`
+}
 
-    return nil
+func (ul *NewLinkRequestDto) Validate() error {
+	if _, err := url.ParseRequestURI(string(ul.Url)); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 type LinkResponse struct {
-    Success bool `json:"success"`
-    Data interface{} `json:"data,omitempty"`
-    Error interface{} `json:"error,omitempty"`
+	Success bool        `json:"success"`
+	Data    interface{} `json:"data,omitempty"`
+	Error   interface{} `json:"error,omitempty"`
 }
 
 type LinkRepository interface {
-    Create(r LinkRequest) (Link, error)
-    GetOneById(id uint) (Link, error)
-    GetAll() ([]Link, error)
+	Create(r NewLinkRequestDto) (Link, error)
+	GetOneById(r GetLinkRequestDto) (Link, error)
+	GetAll(cs string) ([]Link, error)
 }

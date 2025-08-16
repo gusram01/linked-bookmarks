@@ -6,25 +6,24 @@ import (
 )
 
 type CreateOneLink struct {
-    r domain.LinkRepository
+	r domain.LinkRepository
 }
 
 func NewCreateOneLinkUse(r domain.LinkRepository) *CreateOneLink {
-    return &CreateOneLink{
-        r: r,
-    }
+	return &CreateOneLink{
+		r: r,
+	}
 }
 
-func (uc *CreateOneLink) Execute(r domain.LinkRequest) (domain.Link, error) {
-    if err := r.Validate(); err != nil {
-        return domain.Link{}, internal.NewErrorf(
-            internal.ErrorCodeInvalidField,
-            "CreateLink::Invalid::URL::%s",
-            r.Url,
-        )
-    }
+func (uc *CreateOneLink) Execute(r domain.NewLinkRequestDto) (domain.Link, error) {
+	if err := r.Validate(); err != nil {
+		return domain.Link{}, internal.NewErrorf(
+			internal.ErrorCodeInvalidField,
+			"CreateLink::Invalid::URL::%s",
+			r.Url,
+		)
+	}
 
-    // TODO: handle database errors and mapping to internal.ErrorCode
-    return uc.r.Create(r)
+	// TODO: handle database errors and mapping to internal.ErrorCode
+	return uc.r.Create(r)
 }
-
