@@ -10,8 +10,9 @@ import (
 	"github.com/clerk/clerk-sdk-go/v2"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
+	"github.com/gofiber/fiber/v2/middleware/healthcheck"
+	"github.com/gofiber/fiber/v2/middleware/helmet"
 	"github.com/gofiber/fiber/v2/middleware/limiter"
-	"github.com/gusram01/linked-bookmarks/internal/healthcheck"
 	links "github.com/gusram01/linked-bookmarks/internal/link/infra"
 	linksHttp "github.com/gusram01/linked-bookmarks/internal/link/infra/http"
 	"github.com/gusram01/linked-bookmarks/internal/platform/config"
@@ -25,6 +26,9 @@ func main() {
 		Prefork: true,
 		AppName: "linked-bookmarks",
 	})
+	app.Use(cors.New())
+	app.Use(helmet.New())
+	app.Use(healthcheck.New())
 
 	app.Use(limiter.New(limiter.Config{
 		LimitReached: func(c *fiber.Ctx) error {
@@ -36,12 +40,10 @@ func main() {
 		},
 		Storage: storagekv.GetStorage(),
 	}))
-	app.Use(cors.New())
 	clerk.SetKey(config.Config("GC_MARK_AUTH_KEY"))
 
 	database.Initialize(&links.LinkModel{})
 
-	healthcheck.Bootstrap(app)
 	linksHttp.Bootstrap(app)
 
 	p := config.Config("GC_MARK_PORT")
