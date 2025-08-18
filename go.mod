@@ -36,6 +36,7 @@ require (
 	github.com/samber/slog-fiber v1.18.0 // indirect
 	github.com/samber/slog-formatter v1.2.0 // indirect
 	github.com/samber/slog-multi v1.3.3 // indirect
+	github.com/svix/svix-webhooks v1.73.0 // indirect
 	github.com/tinylib/msgp v1.2.5 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
 	github.com/valyala/fasthttp v1.59.0 // indirect

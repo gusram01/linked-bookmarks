@@ -1,24 +1,26 @@
 package infra
 
 import (
+	"github.com/clerk/clerk-sdk-go/v2/user"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gusram01/linked-bookmarks/internal/link/domain"
 	"github.com/gusram01/linked-bookmarks/internal/link/infra"
 	"github.com/gusram01/linked-bookmarks/internal/link/usecases"
 	"github.com/gusram01/linked-bookmarks/internal/platform/auth"
 	"github.com/gusram01/linked-bookmarks/internal/platform/database"
+	"github.com/gusram01/linked-bookmarks/internal/shared"
 )
 
 type LinkHandler struct {
-	createOneUC  usecases.BaseUseCase[domain.NewLinkRequestDto, domain.Link]
-	getOneByIdUC usecases.BaseUseCase[domain.GetLinkRequestDto, domain.Link]
-	getAllUC     usecases.BaseUseCase[string, []domain.Link]
+	createOneUC  shared.QueryBaseUseCase[domain.NewLinkRequestDto, domain.Link]
+	getOneByIdUC shared.QueryBaseUseCase[domain.GetLinkRequestDto, domain.Link]
+	getAllUC     shared.QueryBaseUseCase[string, []domain.Link]
 }
 
 func newLinkHandler(
-	createUc usecases.BaseUseCase[domain.NewLinkRequestDto, domain.Link],
-	getOneUc usecases.BaseUseCase[domain.GetLinkRequestDto, domain.Link],
-	getAll usecases.BaseUseCase[string, []domain.Link],
+	createUc shared.QueryBaseUseCase[domain.NewLinkRequestDto, domain.Link],
+	getOneUc shared.QueryBaseUseCase[domain.GetLinkRequestDto, domain.Link],
+	getAll shared.QueryBaseUseCase[string, []domain.Link],
 ) *LinkHandler {
 	return &LinkHandler{
 		createOneUC:  createUc,
@@ -151,6 +153,19 @@ func (lh *LinkHandler) getAll(c *fiber.Ctx) error {
 				"data":    nil,
 			})
 	}
+
+	_, uerr := user.Get(c.UserContext(), claims.Subject)
+
+	if uerr != nil {
+		return c.Status(403).JSON(
+			fiber.Map{
+				"success": false,
+				"error":   "You do not have permission to access this resource",
+				"data":    nil,
+			})
+	}
+
+	// logger.GetLogger().Info(fmt.Sprintf("User %s is requesting all links", *usr.ExternalID))
 
 	links, ucErr := lh.getAllUC.Execute(claims.Subject)
 

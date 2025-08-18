@@ -8,21 +8,16 @@ import (
 type UrlLink string
 
 type Link struct {
-	ID        uint
-	Url       string
-	CreatedAt time.Time
-	UpdatedAt time.Time
-	DeletedAt time.Time
+	ID        uint      `json:"id"`
+	Url       string    `json:"url"`
+	CreatedAt time.Time `json:"createdAt"`
+	UpdatedAt time.Time `json:"updatedAt"`
+	DeletedAt time.Time `json:"deletedAt"`
 }
 
 type NewLinkRequestDto struct {
 	Url     UrlLink `json:"url"`
 	Subject string  `json:"subject"`
-}
-
-type GetLinkRequestDto struct {
-	ID      uint   `json:"id"`
-	Subject string `json:"subject"`
 }
 
 func (ul *NewLinkRequestDto) Validate() error {
@@ -33,14 +28,7 @@ func (ul *NewLinkRequestDto) Validate() error {
 	return nil
 }
 
-type LinkResponse struct {
-	Success bool        `json:"success"`
-	Data    interface{} `json:"data,omitempty"`
-	Error   interface{} `json:"error,omitempty"`
-}
-
-type LinkRepository interface {
-	Create(r NewLinkRequestDto) (Link, error)
-	GetOneById(r GetLinkRequestDto) (Link, error)
-	GetAll(cs string) ([]Link, error)
+type GetLinkRequestDto struct {
+	ID      uint   `json:"id"`
+	Subject string `json:"subject"`
 }

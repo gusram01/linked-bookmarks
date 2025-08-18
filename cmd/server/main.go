@@ -13,8 +13,10 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/healthcheck"
 	"github.com/gofiber/fiber/v2/middleware/helmet"
 	"github.com/gofiber/fiber/v2/middleware/limiter"
-	links "github.com/gusram01/linked-bookmarks/internal/link/infra"
 	linksHttp "github.com/gusram01/linked-bookmarks/internal/link/infra/http"
+	links "github.com/gusram01/linked-bookmarks/internal/link/infra/models"
+	onboardingHttp "github.com/gusram01/linked-bookmarks/internal/onboarding/infra/http"
+	onboardingModels "github.com/gusram01/linked-bookmarks/internal/onboarding/infra/models"
 	"github.com/gusram01/linked-bookmarks/internal/platform/config"
 	"github.com/gusram01/linked-bookmarks/internal/platform/database"
 	"github.com/gusram01/linked-bookmarks/internal/platform/logger"
@@ -47,8 +49,9 @@ func main() {
 
 	clerk.SetKey(config.Config("GC_MARK_AUTH_KEY"))
 
-	database.Initialize(&links.LinkModel{})
+	database.Initialize(&links.Link{}, &onboardingModels.User{})
 
+	onboardingHttp.Bootstrap(app)
 	linksHttp.Bootstrap(app)
 
 	p := config.Config("GC_MARK_PORT")

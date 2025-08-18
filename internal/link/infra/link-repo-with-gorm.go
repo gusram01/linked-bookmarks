@@ -2,13 +2,9 @@ package infra
 
 import (
 	"github.com/gusram01/linked-bookmarks/internal/link/domain"
+	"github.com/gusram01/linked-bookmarks/internal/link/infra/models"
 	"gorm.io/gorm"
 )
-
-type LinkModel struct {
-	gorm.Model
-	Url string `gorm:"index:idx_link_models_url,unique"`
-}
 
 type LinkRepoWithGorm struct {
 	db *gorm.DB
@@ -21,7 +17,7 @@ func NewLinkRepoWithGorm(db *gorm.DB) *LinkRepoWithGorm {
 }
 
 func (lr *LinkRepoWithGorm) Create(r domain.NewLinkRequestDto) (domain.Link, error) {
-	link := LinkModel{Url: string(r.Url)}
+	link := models.Link{Url: string(r.Url)}
 
 	result := lr.db.Create(&link)
 
@@ -40,7 +36,7 @@ func (lr *LinkRepoWithGorm) Create(r domain.NewLinkRequestDto) (domain.Link, err
 
 func (lr *LinkRepoWithGorm) GetOneById(r domain.GetLinkRequestDto) (domain.Link, error) {
 
-	var link LinkModel
+	var link models.Link
 
 	result := lr.db.First(&link, r.ID)
 
@@ -59,7 +55,7 @@ func (lr *LinkRepoWithGorm) GetOneById(r domain.GetLinkRequestDto) (domain.Link,
 
 func (lr *LinkRepoWithGorm) GetAll(cs string) ([]domain.Link, error) {
 
-	var links []LinkModel
+	var links []models.Link
 
 	result := lr.db.Where("deleted_at IS null").Find(&links)
 

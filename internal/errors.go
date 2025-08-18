@@ -43,6 +43,8 @@ const (
 	ErrorCodeDBUnknownError
 	ErrorCodeParsingClaims
 	ErrorCodeInvalidClaims
+	ErrorCodeForbidden
+	ErrorCodeWHHandleUserFound
 )
 
 // WrapErrorf returns a wrapped error.
