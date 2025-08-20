@@ -45,7 +45,7 @@ func (uh *OnboardingHandler) upsertOneUser(c *fiber.Ctx) error {
 			"Onboarding::Webhook::Invalid::Payload",
 		)
 
-		return c.SendStatus(400)
+		return c.SendStatus(fiber.StatusBadRequest)
 	}
 
 	if err := uh.upsertOneUserUC.Execute(domain.NewUserRequestDto{
@@ -59,7 +59,7 @@ func (uh *OnboardingHandler) upsertOneUser(c *fiber.Ctx) error {
 			err.Error(),
 		)
 
-		return c.SendStatus(400)
+		return c.SendStatus(fiber.StatusBadRequest)
 	}
 
 	return c.SendStatus(fiber.StatusCreated)
