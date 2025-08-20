@@ -3,6 +3,8 @@ package domain
 import (
 	"net/url"
 	"time"
+
+	"github.com/gusram01/linked-bookmarks/internal"
 )
 
 type UrlLink string
@@ -25,10 +27,28 @@ func (ul *NewLinkRequestDto) Validate() error {
 		return err
 	}
 
+	if ul.Subject == "" {
+		return internal.NewErrorf(
+			internal.ErrorCodeInvalidField,
+			"LinkRequest::Subject::Invalid",
+		)
+	}
+
 	return nil
 }
 
 type GetLinkRequestDto struct {
 	ID      uint   `json:"id"`
 	Subject string `json:"subject"`
+}
+
+type GetAllLinksRequestDto struct {
+	Subject string `json:"subject"`
+	Limit   uint   `json:"limit"`
+	Offset  uint   `json:"offset"`
+}
+
+type GetPaginatedLinksRequestDto struct {
+	PageNum  uint `json:"pageNum"`
+	PageSize uint `json:"pageSize"`
 }

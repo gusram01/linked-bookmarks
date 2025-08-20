@@ -14,13 +14,13 @@ import (
 type LinkHandler struct {
 	createOneUC  shared.QueryBaseUseCase[domain.NewLinkRequestDto, domain.Link]
 	getOneByIdUC shared.QueryBaseUseCase[domain.GetLinkRequestDto, domain.Link]
-	getAllUC     shared.QueryBaseUseCase[string, []domain.Link]
+	getAllUC     shared.QueryBaseUseCase[domain.GetAllLinksRequestDto, []domain.Link]
 }
 
 func newLinkHandler(
 	createUc shared.QueryBaseUseCase[domain.NewLinkRequestDto, domain.Link],
 	getOneUc shared.QueryBaseUseCase[domain.GetLinkRequestDto, domain.Link],
-	getAll shared.QueryBaseUseCase[string, []domain.Link],
+	getAll shared.QueryBaseUseCase[domain.GetAllLinksRequestDto, []domain.Link],
 ) *LinkHandler {
 	return &LinkHandler{
 		createOneUC:  createUc,
@@ -68,11 +68,12 @@ func (lh *LinkHandler) createOne(c *fiber.Ctx) error {
 				"data":    nil,
 			})
 	}
+
 	req.Subject = claims.Subject
 
 	link, ucErr := lh.createOneUC.Execute(*req)
 
-	if ucErr != nil {
+	if ucErr != nil || link.ID == 0 {
 		return c.Status(400).JSON(
 			fiber.Map{
 				"success": false,
@@ -154,9 +155,10 @@ func (lh *LinkHandler) getAll(c *fiber.Ctx) error {
 			})
 	}
 
-	_, uerr := user.Get(c.UserContext(), claims.Subject)
+	loggedUser, uerr := user.Get(c.UserContext(), claims.Subject)
 
-	if uerr != nil {
+	// TODO: validate only can retrieve info from the current user
+	if uerr != nil || loggedUser.ID != claims.Subject {
 		return c.Status(403).JSON(
 			fiber.Map{
 				"success": false,
@@ -165,9 +167,25 @@ func (lh *LinkHandler) getAll(c *fiber.Ctx) error {
 			})
 	}
 
-	// logger.GetLogger().Info(fmt.Sprintf("User %s is requesting all links", *usr.ExternalID))
+	var pagination domain.GetPaginatedLinksRequestDto
 
-	links, ucErr := lh.getAllUC.Execute(claims.Subject)
+	if err := c.QueryParser(&pagination); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(
+			fiber.Map{
+				"success": false,
+				"error":   err.Error(),
+				"data":    nil,
+			},
+		)
+	}
+
+	req := new(domain.GetAllLinksRequestDto)
+
+	req.Subject = claims.Subject
+	req.Limit = pagination.PageSize
+	req.Offset = pagination.PageNum * pagination.PageSize
+
+	links, ucErr := lh.getAllUC.Execute(*req)
 
 	if ucErr != nil {
 		return c.Status(500).JSON(

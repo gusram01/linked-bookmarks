@@ -17,13 +17,23 @@ func NewCreateOneLinkUse(r domain.LinkRepository) *CreateOneLink {
 
 func (uc *CreateOneLink) Execute(r domain.NewLinkRequestDto) (domain.Link, error) {
 	if err := r.Validate(); err != nil {
-		return domain.Link{}, internal.NewErrorf(
+		return domain.Link{}, internal.WrapErrorf(
+			err,
 			internal.ErrorCodeInvalidField,
 			"CreateLink::Invalid::URL::%s",
 			r.Url,
 		)
 	}
 
-	// TODO: handle database errors and mapping to internal.ErrorCode
-	return uc.r.Create(r)
+	link, err := uc.r.Create(r)
+
+	if err != nil {
+		return domain.Link{}, internal.WrapErrorf(
+			err,
+			internal.ErrorCodeDBQueryError,
+			"CreateLink::Create::Err::ValidateRequest",
+		)
+	}
+
+	return link, nil
 }

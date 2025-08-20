@@ -5,7 +5,7 @@ import (
 
 	"github.com/gusram01/linked-bookmarks/internal"
 	"github.com/gusram01/linked-bookmarks/internal/onboarding/domain"
-	"github.com/gusram01/linked-bookmarks/internal/onboarding/infra/models"
+	"github.com/gusram01/linked-bookmarks/internal/shared/models"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
@@ -26,7 +26,8 @@ func (ur *UserRepoWithGorm) Upsert(u *domain.User) error {
 	}
 
 	if err := ur.db.Clauses(clause.OnConflict{
-		UpdateAll: true,
+		Columns:   []clause.Column{{Name: "auth_id"}},
+		DoUpdates: clause.AssignmentColumns([]string{"updated_at"}),
 	}).Create(&user).Error; err != nil {
 
 		if strings.Contains(
