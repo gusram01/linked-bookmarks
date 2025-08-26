@@ -18,7 +18,7 @@ func NewLinkRepoWithGorm(db *gorm.DB) *LinkRepoWithGorm {
 	}
 }
 
-func (lr *LinkRepoWithGorm) Create(r domain.NewLinkRequestDto) (domain.Link, error) {
+func (lr *LinkRepoWithGorm) UpsertOne(r domain.NewLinkRequestDto) (domain.Link, error) {
 	var user models.User
 	var link models.Link
 

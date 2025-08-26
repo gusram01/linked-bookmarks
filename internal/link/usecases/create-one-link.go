@@ -25,7 +25,7 @@ func (uc *CreateOneLink) Execute(r domain.NewLinkRequestDto) (domain.Link, error
 		)
 	}
 
-	link, err := uc.r.Create(r)
+	link, err := uc.r.UpsertOne(r)
 
 	if err != nil {
 		return domain.Link{}, internal.WrapErrorf(
