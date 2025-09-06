@@ -14,7 +14,9 @@ var logger = slog.New(slogformatter.NewFormatterHandler(
 	slogformatter.TimezoneConverter(time.UTC),
 	slogformatter.TimeFormatter(time.RFC3339, nil),
 )(
-	slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{}),
+	slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
+		Level: slog.LevelDebug,
+	}),
 ))
 
 var config = slogfiber.Config{

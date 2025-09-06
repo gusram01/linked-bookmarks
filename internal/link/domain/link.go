@@ -12,6 +12,8 @@ type UrlLink string
 type Link struct {
 	ID        uint      `json:"id"`
 	Url       string    `json:"url"`
+	Summary   string    `json:"summary"`
+	Attempts  uint      `json:"attempts"`
 	CreatedAt time.Time `json:"createdAt"`
 	UpdatedAt time.Time `json:"updatedAt"`
 	DeletedAt time.Time `json:"deletedAt"`

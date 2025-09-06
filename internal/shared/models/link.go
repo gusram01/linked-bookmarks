@@ -6,6 +6,8 @@ import (
 
 type Link struct {
 	gorm.Model
-	Url   string `gorm:"index:idx_link_models_url,unique"`
-	Users []User `gorm:"many2many:user_links;joinForeignKey:LinkID;joinReferences:UserID"`
+	Url      string `gorm:"index:idx_link_models_url,unique"`
+	Summary  string `gorm:"text"`
+	Attempts uint   `gorm:"default:0;not null"`
+	Users    []User `gorm:"many2many:user_links;joinForeignKey:LinkID;joinReferences:UserID"`
 }

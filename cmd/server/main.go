@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"log"
+	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
@@ -29,6 +30,7 @@ func main() {
 		Prefork: true,
 		AppName: "linked-bookmarks",
 	})
+
 	app.Use(cors.New())
 	app.Use(helmet.New())
 	app.Use(healthcheck.New())
@@ -51,34 +53,34 @@ func main() {
 	database.Initialize(&models.Link{}, &models.User{}, &models.UserLink{})
 
 	onboardingHttp.Bootstrap(app)
-	linksHttp.Bootstrap(app)
+	uc, _ := linksHttp.Bootstrap(app)
 
 	p := config.Config("GC_MARK_PORT")
 
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, os.Interrupt, syscall.SIGTTIN, syscall.SIGTERM)
+
 	go func() {
-		fmt.Printf("start listen on port: %s \n", p)
-		if err := app.Listen(fmt.Sprintf(":%s", p)); err != nil {
-			log.Panic(err)
+		logger.GetLogger().Info("start listen on port ", "port", p)
+		address := fmt.Sprintf(":%s", p)
+		if err := app.Listen(address); err != nil {
+
+			if err != http.ErrServerClosed {
+				log.Fatalf("Could not listen on %s: %v\n", address, err)
+			}
 		}
 	}()
 
-	c := make(chan os.Signal, 1)
-	signal.Notify(
-		c,
-		os.Interrupt,
-		syscall.SIGTTIN,
-		syscall.SIGTERM,
-	)
+	<-quit
+	logger.GetLogger().Info("🚨 Shutdown signal received.")
 
-	<-c
-	fmt.Println("Gracefully shutting down...")
 	_ = app.Shutdown()
 
-	fmt.Println("Running cleanup tasks...")
+	logger.GetLogger().Info("Starting cleanup tasks...")
 
 	storagekv.GetStorage().Close()
+	uc.Shutdown()
 	// Your cleanup tasks go here
-	// db.Close()
-	// redisConn.Close()
-	fmt.Println("Fiber was successful shutdown.")
+
+	logger.GetLogger().Info("✅ Application shut down gracefully.")
 }

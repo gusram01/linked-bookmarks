@@ -41,13 +41,15 @@ func (lh *LinkHandler) registerRoutes(r fiber.Router) {
 	lRouter.Get("/", lh.getAll)
 }
 
-func Bootstrap(r fiber.Router) {
+func Bootstrap(r fiber.Router) (*usecases.CreateOneLink, error) {
 	repo := infra.NewLinkRepoWithGorm(database.DB)
 	createUC := usecases.NewCreateOneLinkUse(repo)
 	getOneUC := usecases.NewGetOneByIdLinkUse(repo)
 	getAllUC := usecases.NewGetAllLinksUse(repo)
 
 	newLinkHandler(createUC, getOneUC, getAllUC).registerRoutes(r)
+
+	return createUC, nil
 }
 
 func (lh *LinkHandler) createOne(c *fiber.Ctx) error {
@@ -159,8 +161,10 @@ func (lh *LinkHandler) getAll(c *fiber.Ctx) error {
 		responseLinks = append(
 			responseLinks,
 			internal.GcMap{
-				"id":  link.ID,
-				"url": link.Url,
+				"id":       link.ID,
+				"url":      link.Url,
+				"summary":  link.Summary,
+				"attempts": link.Attempts,
 			})
 	}
 
