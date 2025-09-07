@@ -63,8 +63,8 @@ func (lr *LinkRepoWithGorm) UpsertOne(r domain.NewLinkRequestDto) (domain.Link, 
 	}, nil
 }
 
-func (lr *LinkRepoWithGorm) UpdateSummary(id uint, summary string) error {
-	result := lr.db.Model(&models.Link{}).Where("id = ?", id).Update("summary", summary)
+func (lr *LinkRepoWithGorm) UpdateSummary(r domain.UpdateSummaryRequestDto) error {
+	result := lr.db.Model(&models.Link{}).Where("id = ?", r.ID).Update("summary", r.Summary)
 
 	if result.Error != nil {
 		return internal.WrapErrorf(result.Error,
@@ -72,6 +72,60 @@ func (lr *LinkRepoWithGorm) UpdateSummary(id uint, summary string) error {
 	}
 
 	return nil
+}
+
+func (lr *LinkRepoWithGorm) UpdateTags(r domain.UpdateTagsRequestDto) error {
+	return lr.db.
+		Transaction(func(tx *gorm.DB) error {
+			var tags []models.Tag
+
+			for _, name := range r.Tags {
+				tag := models.Tag{Name: name}
+				tags = append(tags, tag)
+			}
+
+			tagResult := tx.
+				Clauses(clause.OnConflict{
+					Columns:   []clause.Column{{Name: "name"}},
+					DoUpdates: clause.AssignmentColumns([]string{"updated_at"}),
+				}).
+				Create(&tags)
+
+			if tagResult.Error != nil {
+				return internal.WrapErrorf(tagResult.Error,
+					internal.ErrorCodeDBQueryError, "Tag::DB::Create")
+			}
+
+			var existingTags []models.Tag
+
+			if err := tx.
+				Where("name IN ?", r.Tags).
+				Find(&existingTags).Error; err != nil {
+				return internal.WrapErrorf(
+					err,
+					internal.ErrorCodeDBQueryError,
+					"Tag::DB::Find::Err::%s",
+					err.Error(),
+				)
+			}
+
+			var link models.Link
+			link.ID = r.ID
+
+			appendResult := tx.Model(&link).Association("Tags").Append(existingTags)
+
+			if appendResult != nil {
+				return internal.WrapErrorf(
+					appendResult,
+					internal.ErrorCodeDBQueryError,
+					"Tag::DB::Append::Err::%s",
+					appendResult.Error(),
+				)
+			}
+
+			return nil
+		})
+
 }
 
 func (lr *LinkRepoWithGorm) GetOneById(r domain.GetLinkRequestDto) (domain.Link, error) {

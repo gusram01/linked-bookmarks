@@ -54,3 +54,13 @@ type GetPaginatedLinksRequestDto struct {
 	PageNum  uint `json:"pageNum"`
 	PageSize uint `json:"pageSize"`
 }
+
+type UpdateSummaryRequestDto struct {
+	ID      uint   `json:"id"`
+	Summary string `json:"summary"`
+}
+
+type UpdateTagsRequestDto struct {
+	ID   uint     `json:"id"`
+	Tags []string `json:"tags"`
+}

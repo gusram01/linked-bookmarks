@@ -53,7 +53,7 @@ func main() {
 
 	clerk.SetKey(config.ENVS.AuthProviderApiKey)
 
-	database.Initialize(&models.Link{}, &models.User{}, &models.UserLink{})
+	database.Initialize(&models.Link{}, &models.User{}, &models.UserLink{}, &models.Tag{}, &models.TagLink{})
 
 	worker.CentralWorkerPool.Run()
 	ai.Start()

@@ -8,6 +8,8 @@ import (
 	"github.com/gusram01/linked-bookmarks/internal/ai"
 	"github.com/gusram01/linked-bookmarks/internal/link/domain"
 	"github.com/gusram01/linked-bookmarks/internal/platform/logger"
+
+	"github.com/iancoleman/strcase"
 )
 
 type SummarizeCategorizeLink struct {
@@ -49,7 +51,6 @@ func (uc *SummarizeCategorizeLink) Process() error {
 		)
 	}
 
-	// TODO: make categories a many to many relationship and store them
 	// TODO: create a new use case to get links by category
 	// TODO: create a new use case to get links by updatedAt desc
 
@@ -89,12 +90,39 @@ func (uc *SummarizeCategorizeLink) Process() error {
 
 	logger.GetLogger().Info(fmt.Sprintf("worker summary for link %s: %+v\n", link.Url, summary))
 
-	if err := uc.linkR.UpdateSummary(link.ID, summary.Description); err != nil {
+	if err := uc.linkR.UpdateSummary(domain.UpdateSummaryRequestDto{
+		ID:      link.ID,
+		Summary: summary.Description,
+	}); err != nil {
 		logger.GetLogger().Error(fmt.Sprintf("worker error updating summary for link %s: %v\n", link.Url, err))
 		return internal.WrapErrorf(
 			err,
 			internal.ErrorCodeDBQueryError,
 			"SummarizeCategorizeLink::UpdateSummary::Err::%s",
+			err.Error(),
+		)
+	}
+
+	if len(summary.Categories) == 0 {
+		logger.GetLogger().Info(fmt.Sprintf("worker no categories found for link %s, skipping tag update\n", link.Url))
+		return nil
+	}
+
+	snakeCaseTags := make([]string, len(summary.Categories))
+
+	for i, tag := range summary.Categories {
+		snakeCaseTags[i] = strcase.ToSnake(tag)
+	}
+
+	if err := uc.linkR.UpdateTags(domain.UpdateTagsRequestDto{
+		ID:   link.ID,
+		Tags: snakeCaseTags,
+	}); err != nil {
+		logger.GetLogger().Error(fmt.Sprintf("worker error updating tags for link %s: %v\n", link.Url, err))
+		return internal.WrapErrorf(
+			err,
+			internal.ErrorCodeDBQueryError,
+			"SummarizeCategorizeLink::UpdateTags::Err::%s",
 			err.Error(),
 		)
 	}
