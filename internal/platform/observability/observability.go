@@ -21,9 +21,9 @@ func new() fiber.Handler {
 		}
 
 		if err := sentry.Init(sentry.ClientOptions{
-			Dsn: config.Config("GC_MARK_SENTRY_DSN"),
+			Dsn: config.ENVS.SentryDsn,
 		}); err != nil {
-			logger.GetLogger().ErrorContext(c.UserContext(), "observability initialization failed: %s", err.Error())
+			logger.GetLogger().ErrorContext(c.UserContext(), "observability initialization failed: ", "error", err.Error())
 
 			return err
 		}

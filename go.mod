@@ -9,6 +9,7 @@ require (
 	github.com/gofiber/fiber/v2 v2.52.9
 	github.com/gofiber/storage/cloudflarekv v0.2.0
 	github.com/joho/godotenv v1.5.1
+	github.com/kelseyhightower/envconfig v1.4.0
 	github.com/samber/slog-fiber v1.18.0
 	github.com/samber/slog-formatter v1.2.0
 	github.com/svix/svix-webhooks v1.73.0

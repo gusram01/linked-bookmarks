@@ -11,7 +11,7 @@ import (
 	svix "github.com/svix/svix-webhooks/go"
 )
 
-var secret = config.Config("GC_MARK_CLERK_WH_SIGNING_SECRET")
+var secret = config.ENVS.WebhookProviderSecret
 
 type UpsertOneUserUC struct {
 	r  domain.UserRepository

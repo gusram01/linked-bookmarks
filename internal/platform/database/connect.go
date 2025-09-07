@@ -10,12 +10,12 @@ import (
 
 func Initialize(models ...interface{}) {
 	dsn := fmt.Sprintf(
-		"host=%s user=%s password=%s dbname=%s sslmode=%s" ,
-        config.Config("GC_MARK_DB_HOST"),
-		config.Config("GC_MARK_DB_USER"),
-		config.Config("GC_MARK_DB_PASS"),
-		config.Config("GC_MARK_DB_NAME"),
-		config.Config("GC_MARK_DB_SSL_MODE"),
+		"host=%s user=%s password=%s dbname=%s sslmode=%s",
+		config.ENVS.DbHost,
+		config.ENVS.DbUser,
+		config.ENVS.DbPass,
+		config.ENVS.DbName,
+		config.ENVS.DbSSLMode,
 	)
 
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
@@ -24,13 +24,12 @@ func Initialize(models ...interface{}) {
 		panic(fmt.Sprintf("DB::init::failed::%s", err.Error()))
 	}
 
-
 	fmt.Println("DB connection initialized")
 
-    if models != nil {
-        db.AutoMigrate(models...)
-        fmt.Println("DB migrated")
-    }
+	if models != nil {
+		db.AutoMigrate(models...)
+		fmt.Println("DB migrated")
+	}
 
-    DB = db
+	DB = db
 }

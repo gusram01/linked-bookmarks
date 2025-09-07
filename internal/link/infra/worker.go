@@ -13,7 +13,7 @@ func ExecSummarization(linkURL string) (string, error) {
 	ctx := context.Background()
 
 	clientConfig := &genai.ClientConfig{
-		APIKey: config.Config("GC_MARK_GEMINI_API_KEY"),
+		APIKey: config.ENVS.GeminiApiKey,
 	}
 
 	client, err := genai.NewClient(ctx, clientConfig)

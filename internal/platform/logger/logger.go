@@ -10,12 +10,18 @@ import (
 	slogformatter "github.com/samber/slog-formatter"
 )
 
+type MyLeveler struct{}
+
+func (l MyLeveler) Level() slog.Level {
+	return 0
+}
+
 var logger = slog.New(slogformatter.NewFormatterHandler(
 	slogformatter.TimezoneConverter(time.UTC),
 	slogformatter.TimeFormatter(time.RFC3339, nil),
 )(
 	slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
-		Level: slog.LevelDebug,
+		Level: MyLeveler{},
 	}),
 ))
 

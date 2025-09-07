@@ -25,6 +25,7 @@ import (
 )
 
 func main() {
+	config.LoadConfigFile()
 
 	app := fiber.New(fiber.Config{
 		Prefork: true,
@@ -48,14 +49,14 @@ func main() {
 		Storage: storagekv.GetStorage(),
 	}))
 
-	clerk.SetKey(config.Config("GC_MARK_AUTH_KEY"))
+	clerk.SetKey(config.ENVS.AuthProviderApiKey)
 
 	database.Initialize(&models.Link{}, &models.User{}, &models.UserLink{})
 
 	onboardingHttp.Bootstrap(app)
 	uc, _ := linksHttp.Bootstrap(app)
 
-	p := config.Config("GC_MARK_PORT")
+	p := config.ENVS.ApiPort
 
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, os.Interrupt, syscall.SIGTTIN, syscall.SIGTERM)

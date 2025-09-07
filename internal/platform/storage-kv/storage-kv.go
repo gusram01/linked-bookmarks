@@ -10,10 +10,10 @@ var kvStorage *cloudflarekv.Storage
 func GetStorage() *cloudflarekv.Storage {
 	if kvStorage == nil {
 		kvStorage = cloudflarekv.New(cloudflarekv.Config{
-			Key:         config.Config("GC_MARK_KV_STORAGE_TOKEN"),
-			AccountID:   config.Config("GC_MARK_CF_ACCOUNT_ID"),
-			NamespaceID: config.Config("GC_MARK_CF_NAMESPACE_ID"),
-			Email:       config.Config("GC_MARK_CF_EMAIL"),
+			Key:         config.ENVS.KvStorageToken,
+			AccountID:   config.ENVS.CfAccountId,
+			NamespaceID: config.ENVS.CfNamespaceId,
+			Email:       config.ENVS.CfEmail,
 			Reset:       false,
 		})
 
