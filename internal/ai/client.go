@@ -1,15 +1,22 @@
-package infra
+package ai
 
 import (
 	"context"
 	"fmt"
+	"log"
 
 	"github.com/gusram01/linked-bookmarks/internal/platform/config"
 	"github.com/gusram01/linked-bookmarks/internal/platform/logger"
 	"google.golang.org/genai"
 )
 
-func ExecSummarization(linkURL string) (string, error) {
+type AI struct {
+	client *genai.Client
+}
+
+var MyAI *AI
+
+func Start() {
 	ctx := context.Background()
 
 	clientConfig := &genai.ClientConfig{
@@ -19,24 +26,15 @@ func ExecSummarization(linkURL string) (string, error) {
 	client, err := genai.NewClient(ctx, clientConfig)
 
 	if err != nil {
-		return "", err
+		log.Fatalf("Failed to create Gemini client: %v", err)
 	}
 
-	raw, rawErr := summarizeAndCategorizeURL(client, linkURL)
-
-	if rawErr != nil {
-		return "", rawErr
+	MyAI = &AI{
+		client: client,
 	}
-	result, err := structureOutput(client, raw)
-
-	if err != nil {
-		return "", err
-	}
-
-	return result, nil
 }
 
-func summarizeAndCategorizeURL(client *genai.Client, url string) (string, error) {
+func (ai *AI) SummarizeAndCategorizeURL(url string) (string, error) {
 	ctx := context.Background()
 	config := &genai.GenerateContentConfig{
 		Tools: []*genai.Tool{
@@ -68,7 +66,7 @@ The content to be analyzed is broad in nature, could be, but not limited to, Git
 
 **URL**:%s`, url)
 
-	result, err := client.Models.GenerateContent(
+	result, err := ai.client.Models.GenerateContent(
 		ctx,
 		"gemini-2.5-flash-lite",
 		genai.Text(prompt),
@@ -87,7 +85,7 @@ The content to be analyzed is broad in nature, could be, but not limited to, Git
 	return result.Text(), nil
 }
 
-func structureOutput(client *genai.Client, raw string) (string, error) {
+func (ai *AI) StructureOutput(raw string) (string, error) {
 	ctx := context.Background()
 
 	config := &genai.GenerateContentConfig{
@@ -136,7 +134,7 @@ The content to be analyzed is broad in nature, could be, but not limited to, Git
 
 **Raw text**:%s`, raw)
 
-	result, err := client.Models.GenerateContent(
+	result, err := ai.client.Models.GenerateContent(
 		ctx,
 		"gemini-2.5-flash-lite",
 		genai.Text(prompt),

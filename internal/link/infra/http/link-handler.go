@@ -12,23 +12,28 @@ import (
 	"github.com/gusram01/linked-bookmarks/internal/platform/auth"
 	"github.com/gusram01/linked-bookmarks/internal/platform/database"
 	"github.com/gusram01/linked-bookmarks/internal/shared"
+	"github.com/gusram01/linked-bookmarks/internal/worker"
 )
 
 type LinkHandler struct {
 	createOneUC  shared.QueryBaseUseCase[domain.NewLinkRequestDto, domain.Link]
 	getOneByIdUC shared.QueryBaseUseCase[domain.GetLinkRequestDto, domain.Link]
 	getAllUC     shared.QueryBaseUseCase[domain.GetAllLinksRequestDto, []domain.Link]
+	linkRepo     domain.LinkRepository
 }
 
 func newLinkHandler(
 	createUc shared.QueryBaseUseCase[domain.NewLinkRequestDto, domain.Link],
 	getOneUc shared.QueryBaseUseCase[domain.GetLinkRequestDto, domain.Link],
 	getAll shared.QueryBaseUseCase[domain.GetAllLinksRequestDto, []domain.Link],
+	linkRepo domain.LinkRepository,
+
 ) *LinkHandler {
 	return &LinkHandler{
 		createOneUC:  createUc,
 		getOneByIdUC: getOneUc,
 		getAllUC:     getAll,
+		linkRepo:     linkRepo,
 	}
 }
 
@@ -41,15 +46,13 @@ func (lh *LinkHandler) registerRoutes(r fiber.Router) {
 	lRouter.Get("/", lh.getAll)
 }
 
-func Bootstrap(r fiber.Router) (*usecases.CreateOneLink, error) {
+func Bootstrap(r fiber.Router) {
 	repo := infra.NewLinkRepoWithGorm(database.DB)
 	createUC := usecases.NewCreateOneLinkUse(repo)
 	getOneUC := usecases.NewGetOneByIdLinkUse(repo)
 	getAllUC := usecases.NewGetAllLinksUse(repo)
 
-	newLinkHandler(createUC, getOneUC, getAllUC).registerRoutes(r)
-
-	return createUC, nil
+	newLinkHandler(createUC, getOneUC, getAllUC, repo).registerRoutes(r)
 }
 
 func (lh *LinkHandler) createOne(c *fiber.Ctx) error {
@@ -71,6 +74,10 @@ func (lh *LinkHandler) createOne(c *fiber.Ctx) error {
 	if ucErr != nil || link.ID == 0 {
 		return c.Status(fiber.StatusBadRequest).JSON(internal.NewGcResponse(nil, ucErr))
 	}
+
+	scUC := usecases.NewSummarizeCategorizeLinkUse(lh.linkRepo, link)
+
+	worker.CentralWorkerPool.Submit(scUC)
 
 	return c.Status(fiber.StatusCreated).JSON(
 		internal.NewGcResponse(
@@ -113,8 +120,10 @@ func (lh *LinkHandler) getOne(c *fiber.Ctx) error {
 	return c.Status(fiber.StatusOK).JSON(
 		internal.NewGcResponse(
 			internal.GcMap{
-				"id":  link.ID,
-				"url": link.Url,
+				"id":       link.ID,
+				"url":      link.Url,
+				"summary":  link.Summary,
+				"attempts": link.Attempts,
 			},
 			nil,
 		),

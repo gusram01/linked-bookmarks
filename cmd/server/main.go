@@ -14,6 +14,7 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/healthcheck"
 	"github.com/gofiber/fiber/v2/middleware/helmet"
 	"github.com/gofiber/fiber/v2/middleware/limiter"
+	"github.com/gusram01/linked-bookmarks/internal/ai"
 	linksHttp "github.com/gusram01/linked-bookmarks/internal/link/infra/http"
 	onboardingHttp "github.com/gusram01/linked-bookmarks/internal/onboarding/infra/http"
 	"github.com/gusram01/linked-bookmarks/internal/platform/config"
@@ -22,6 +23,7 @@ import (
 	"github.com/gusram01/linked-bookmarks/internal/platform/observability"
 	storagekv "github.com/gusram01/linked-bookmarks/internal/platform/storage-kv"
 	"github.com/gusram01/linked-bookmarks/internal/shared/models"
+	"github.com/gusram01/linked-bookmarks/internal/worker"
 )
 
 func main() {
@@ -53,8 +55,10 @@ func main() {
 
 	database.Initialize(&models.Link{}, &models.User{}, &models.UserLink{})
 
+	worker.CentralWorkerPool.Run()
+	ai.Start()
 	onboardingHttp.Bootstrap(app)
-	uc, _ := linksHttp.Bootstrap(app)
+	linksHttp.Bootstrap(app)
 
 	p := config.ENVS.ApiPort
 
@@ -80,7 +84,7 @@ func main() {
 	logger.GetLogger().Info("Starting cleanup tasks...")
 
 	storagekv.GetStorage().Close()
-	uc.Shutdown()
+	worker.CentralWorkerPool.Shutdown()
 	// Your cleanup tasks go here
 
 	logger.GetLogger().Info("✅ Application shut down gracefully.")

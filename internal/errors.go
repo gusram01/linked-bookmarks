@@ -45,6 +45,7 @@ const (
 	ErrorCodeInvalidClaims
 	ErrorCodeForbidden
 	ErrorCodeWHHandleUserFound
+	ErrorCodeSummaryExists
 )
 
 // WrapErrorf returns a wrapped error.
