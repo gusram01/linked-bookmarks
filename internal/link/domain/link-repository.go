@@ -5,5 +5,5 @@ type LinkRepository interface {
 	UpdateSummary(r UpdateSummaryRequestDto) error
 	UpdateTags(r UpdateTagsRequestDto) error
 	GetOneById(r GetLinkRequestDto) (Link, error)
-	GetAll(r GetAllLinksRequestDto) ([]Link, error)
+	GetAll(r GetAllLinksRequestDto) (GetAllQueryResultDto, error)
 }

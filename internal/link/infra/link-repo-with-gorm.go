@@ -149,9 +149,20 @@ func (lr *LinkRepoWithGorm) GetOneById(r domain.GetLinkRequestDto) (domain.Link,
 	}, nil
 }
 
-func (lr *LinkRepoWithGorm) GetAll(r domain.GetAllLinksRequestDto) ([]domain.Link, error) {
+func (lr *LinkRepoWithGorm) GetAll(r domain.GetAllLinksRequestDto) (domain.GetAllQueryResultDto, error) {
 
-	var ls []domain.Link
+	var qr domain.GetAllQueryResultDto
+
+	qCountRes := lr.db.
+		Model(&models.Link{}).
+		Joins("JOIN user_links ul ON links.id = ul.link_id").
+		Joins("JOIN users u ON ul.user_id = u.id ").
+		Where("u.auth_id = ?", r.Subject).
+		Count(&qr.TotalCount)
+
+	if qCountRes.Error != nil {
+		return domain.GetAllQueryResultDto{}, qCountRes.Error
+	}
 
 	qAllRes := lr.db.
 		Model(&models.Link{}).
@@ -161,11 +172,11 @@ func (lr *LinkRepoWithGorm) GetAll(r domain.GetAllLinksRequestDto) ([]domain.Lin
 		Joins("JOIN user_links ul ON links.id = ul.link_id").
 		Joins("JOIN users u ON ul.user_id = u.id ").
 		Where("u.auth_id = ?", r.Subject).
-		Scan(&ls)
+		Scan(&qr.Links)
 
 	if qAllRes.Error != nil {
-		return []domain.Link{}, qAllRes.Error
+		return domain.GetAllQueryResultDto{}, qAllRes.Error
 	}
 
-	return ls, nil
+	return qr, nil
 }

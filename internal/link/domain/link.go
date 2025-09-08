@@ -50,9 +50,21 @@ type GetAllLinksRequestDto struct {
 	Offset  uint   `json:"offset"`
 }
 
+type GetAllQueryResultDto struct {
+	Links      []Link `json:"links"`
+	TotalCount int64  `json:"totalCount"`
+	Pages      int64  `json:"pages"`
+}
+
+type GetAllLinksResponseDto struct {
+	Links      []any `json:"links"`
+	TotalCount int64 `json:"totalCount"`
+	TotalPages int64 `json:"totalPages"`
+}
+
 type GetPaginatedLinksRequestDto struct {
-	PageNum  uint `json:"pageNum"`
-	PageSize uint `json:"pageSize"`
+	PageNum  uint `query:"pageNum"`
+	PageSize uint `query:"pageSize"`
 }
 
 type UpdateSummaryRequestDto struct {

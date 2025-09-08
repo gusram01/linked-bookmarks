@@ -18,14 +18,14 @@ import (
 type LinkHandler struct {
 	createOneUC  shared.QueryBaseUseCase[domain.NewLinkRequestDto, domain.Link]
 	getOneByIdUC shared.QueryBaseUseCase[domain.GetLinkRequestDto, domain.Link]
-	getAllUC     shared.QueryBaseUseCase[domain.GetAllLinksRequestDto, []domain.Link]
+	getAllUC     shared.QueryBaseUseCase[domain.GetAllLinksRequestDto, domain.GetAllQueryResultDto]
 	linkRepo     domain.LinkRepository
 }
 
 func newLinkHandler(
 	createUc shared.QueryBaseUseCase[domain.NewLinkRequestDto, domain.Link],
 	getOneUc shared.QueryBaseUseCase[domain.GetLinkRequestDto, domain.Link],
-	getAll shared.QueryBaseUseCase[domain.GetAllLinksRequestDto, []domain.Link],
+	getAll shared.QueryBaseUseCase[domain.GetAllLinksRequestDto, domain.GetAllQueryResultDto],
 	linkRepo domain.LinkRepository,
 
 ) *LinkHandler {
@@ -146,10 +146,14 @@ func (lh *LinkHandler) getAll(c *fiber.Ctx) error {
 		))
 	}
 
-	var pagination domain.GetPaginatedLinksRequestDto
+	pagination := new(domain.GetPaginatedLinksRequestDto)
 
-	if err := c.QueryParser(&pagination); err != nil {
+	if err := c.QueryParser(pagination); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(internal.NewGcResponse(nil, err))
+	}
+
+	if pagination.PageSize == 0 {
+		pagination.PageSize = 5
 	}
 
 	req := new(domain.GetAllLinksRequestDto)
@@ -158,17 +162,20 @@ func (lh *LinkHandler) getAll(c *fiber.Ctx) error {
 	req.Limit = pagination.PageSize
 	req.Offset = pagination.PageNum * pagination.PageSize
 
-	links, ucErr := lh.getAllUC.Execute(*req)
+	linksResult, ucErr := lh.getAllUC.Execute(*req)
 
 	if ucErr != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(internal.NewGcResponse(nil, ucErr))
 	}
 
-	var responseLinks []internal.GcMap
+	var responseLinks domain.GetAllLinksResponseDto
 
-	for _, link := range links {
-		responseLinks = append(
-			responseLinks,
+	responseLinks.TotalCount = linksResult.TotalCount
+	responseLinks.TotalPages = linksResult.Pages
+
+	for _, link := range linksResult.Links {
+		responseLinks.Links = append(
+			responseLinks.Links,
 			internal.GcMap{
 				"id":       link.ID,
 				"url":      link.Url,

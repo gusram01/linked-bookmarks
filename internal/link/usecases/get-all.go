@@ -15,20 +15,24 @@ func NewGetAllLinksUse(r domain.LinkRepository) *GetAllLinks {
 	}
 }
 
-func (uc *GetAllLinks) Execute(r domain.GetAllLinksRequestDto) ([]domain.Link, error) {
-	if r.Limit == 0 {
-		r.Limit = 5
-	}
-
-	links, err := uc.r.GetAll(r)
+func (uc *GetAllLinks) Execute(r domain.GetAllLinksRequestDto) (domain.GetAllQueryResultDto, error) {
+	qr, err := uc.r.GetAll(r)
 
 	if err != nil {
-		return []domain.Link{}, internal.WrapErrorf(
+		return domain.GetAllQueryResultDto{}, internal.WrapErrorf(
 			err,
 			internal.ErrorCodeDBQueryError,
 			"GetAll::Links::Error",
 		)
 	}
 
-	return links, nil
+	pages := int64(qr.TotalCount) / int64(r.Limit)
+
+	if int64(qr.TotalCount)%int64(r.Limit) != 0 {
+		pages += 1
+	}
+
+	qr.Pages = pages
+
+	return qr, nil
 }
