@@ -9,8 +9,8 @@ RUN go mod download
 
 COPY . .
 
-RUN apk add --no-cache dumb-init
-RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-s -w" -o /app/server ./cmd/server
+RUN apk add --no-cache dumb-init build-base
+RUN CGO_ENABLED=1 GOOS=linux go build -ldflags="-s -w" -o /app/server ./cmd/server
 
 # ---- Production Stage ----
 FROM alpine:latest
