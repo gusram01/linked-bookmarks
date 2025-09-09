@@ -23,6 +23,7 @@ import (
 	"github.com/gusram01/linked-bookmarks/internal/platform/observability"
 	storagekv "github.com/gusram01/linked-bookmarks/internal/platform/storage-kv"
 	"github.com/gusram01/linked-bookmarks/internal/shared/models"
+	vectordb "github.com/gusram01/linked-bookmarks/internal/vector-db"
 	"github.com/gusram01/linked-bookmarks/internal/worker"
 )
 
@@ -51,12 +52,14 @@ func main() {
 		Storage: storagekv.GetStorage(),
 	}))
 
+	ai.Start()
+
 	clerk.SetKey(config.ENVS.AuthProviderApiKey)
 
 	database.Initialize(&models.Link{}, &models.User{}, &models.UserLink{}, &models.Tag{}, &models.TagLink{})
+	vectordb.Initialize()
 
 	worker.CentralWorkerPool.Run()
-	ai.Start()
 	onboardingHttp.Bootstrap(app)
 	linksHttp.Bootstrap(app)
 
@@ -85,6 +88,7 @@ func main() {
 
 	storagekv.GetStorage().Close()
 	worker.CentralWorkerPool.Shutdown()
+	vectordb.VDB.Shutdown()
 	// Your cleanup tasks go here
 
 	logger.GetLogger().Info("✅ Application shut down gracefully.")

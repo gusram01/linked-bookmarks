@@ -76,3 +76,7 @@ type UpdateTagsRequestDto struct {
 	ID   uint     `json:"id"`
 	Tags []string `json:"tags"`
 }
+
+type UpdateTagsResponseDto struct {
+	Tags []uint `json:"tags"`
+}

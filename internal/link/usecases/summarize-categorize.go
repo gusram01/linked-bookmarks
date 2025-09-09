@@ -1,13 +1,17 @@
 package usecases
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
+	"strings"
 
+	v2 "github.com/amikos-tech/chroma-go/pkg/api/v2"
 	"github.com/gusram01/linked-bookmarks/internal"
 	"github.com/gusram01/linked-bookmarks/internal/ai"
 	"github.com/gusram01/linked-bookmarks/internal/link/domain"
 	"github.com/gusram01/linked-bookmarks/internal/platform/logger"
+	vectordb "github.com/gusram01/linked-bookmarks/internal/vector-db"
 
 	"github.com/iancoleman/strcase"
 )
@@ -30,6 +34,7 @@ func NewSummarizeCategorizeLinkUse(r domain.LinkRepository, link domain.Link) *S
 }
 
 func (uc *SummarizeCategorizeLink) Process() error {
+	ctx := context.Background()
 	link, err := uc.linkR.GetOneById(domain.GetLinkRequestDto{ID: uc.link.ID})
 
 	if err != nil {
@@ -114,10 +119,12 @@ func (uc *SummarizeCategorizeLink) Process() error {
 		snakeCaseTags[i] = strcase.ToSnake(tag)
 	}
 
-	if err := uc.linkR.UpdateTags(domain.UpdateTagsRequestDto{
+	tags, err := uc.linkR.UpdateTags(domain.UpdateTagsRequestDto{
 		ID:   link.ID,
 		Tags: snakeCaseTags,
-	}); err != nil {
+	})
+
+	if err != nil {
 		logger.GetLogger().Error(fmt.Sprintf("worker error updating tags for link %s: %v\n", link.Url, err))
 		return internal.WrapErrorf(
 			err,
@@ -125,6 +132,22 @@ func (uc *SummarizeCategorizeLink) Process() error {
 			"SummarizeCategorizeLink::UpdateTags::Err::%s",
 			err.Error(),
 		)
+	}
+
+	if err := vectordb.VDB.Collection.Add(
+		ctx,
+		v2.WithTexts(summary.Description),
+		v2.WithMetadatas(
+			v2.NewMetadataFromMap(map[string]interface{}{
+				"url":     link.Url,
+				"tag_ids": strings.Trim(strings.Join(strings.Fields(fmt.Sprint(tags.Tags)), ","), "[]"),
+			}),
+		),
+		v2.WithIDs(
+			v2.DocumentID(fmt.Sprintf("%d", link.ID)),
+		),
+	); err != nil {
+		logger.GetLogger().Warn("Failed to add document to vector DB: ", "error", err.Error())
 	}
 
 	return nil
