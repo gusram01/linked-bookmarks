@@ -74,11 +74,11 @@ func (lr *LinkRepoWithGorm) UpdateSummary(r domain.UpdateSummaryRequestDto) erro
 	return nil
 }
 
-func (lr *LinkRepoWithGorm) UpdateTags(r domain.UpdateTagsRequestDto) (domain.UpdateTagsResponseDto, error) {
+func (lr *LinkRepoWithGorm) UpdateTags(r domain.UpdateTagsRequestDto) error {
 
 	var tags []models.Tag
 
-	txErr := lr.db.
+	return lr.db.
 		Transaction(func(tx *gorm.DB) error {
 
 			for _, name := range r.Tags {
@@ -127,20 +127,6 @@ func (lr *LinkRepoWithGorm) UpdateTags(r domain.UpdateTagsRequestDto) (domain.Up
 
 			return nil
 		})
-
-	if txErr != nil {
-		return domain.UpdateTagsResponseDto{}, txErr
-	}
-
-	return domain.UpdateTagsResponseDto{
-		Tags: func() []uint {
-			ids := make([]uint, len(tags))
-			for i, tag := range tags {
-				ids[i] = tag.ID
-			}
-			return ids
-		}(),
-	}, nil
 
 }
 

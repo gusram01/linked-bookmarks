@@ -4,9 +4,8 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"strings"
 
-	v2 "github.com/amikos-tech/chroma-go/pkg/api/v2"
+	chroma "github.com/amikos-tech/chroma-go/pkg/api/v2"
 	"github.com/gusram01/linked-bookmarks/internal"
 	"github.com/gusram01/linked-bookmarks/internal/ai"
 	"github.com/gusram01/linked-bookmarks/internal/link/domain"
@@ -119,12 +118,16 @@ func (uc *SummarizeCategorizeLink) Process() error {
 		snakeCaseTags[i] = strcase.ToSnake(tag)
 	}
 
-	tags, err := uc.linkR.UpdateTags(domain.UpdateTagsRequestDto{
+	multipleTags := make(map[string]interface{})
+
+	for i, tag := range snakeCaseTags {
+		multipleTags[fmt.Sprintf("tag_%d", i+1)] = tag
+	}
+
+	if err := uc.linkR.UpdateTags(domain.UpdateTagsRequestDto{
 		ID:   link.ID,
 		Tags: snakeCaseTags,
-	})
-
-	if err != nil {
+	}); err != nil {
 		logger.GetLogger().Error(fmt.Sprintf("worker error updating tags for link %s: %v\n", link.Url, err))
 		return internal.WrapErrorf(
 			err,
@@ -136,15 +139,12 @@ func (uc *SummarizeCategorizeLink) Process() error {
 
 	if err := vectordb.VDB.Collection.Add(
 		ctx,
-		v2.WithTexts(summary.Description),
-		v2.WithMetadatas(
-			v2.NewMetadataFromMap(map[string]interface{}{
-				"url":     link.Url,
-				"tag_ids": strings.Trim(strings.Join(strings.Fields(fmt.Sprint(tags.Tags)), ","), "[]"),
-			}),
+		chroma.WithTexts(summary.Description),
+		chroma.WithMetadatas(
+			chroma.NewMetadataFromMap(multipleTags),
 		),
-		v2.WithIDs(
-			v2.DocumentID(fmt.Sprintf("%d", link.ID)),
+		chroma.WithIDs(
+			chroma.DocumentID(fmt.Sprintf("%d", link.ID)),
 		),
 	); err != nil {
 		logger.GetLogger().Warn("Failed to add document to vector DB: ", "error", err.Error())
