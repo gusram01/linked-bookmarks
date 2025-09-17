@@ -20,8 +20,10 @@ var VDB *VectorDB
 func Initialize() {
 	ctx := context.Background()
 
+	var baseUrl = fmt.Sprintf("http://%s:%s", config.ENVS.VectorDBHost, config.ENVS.VectorDBPort)
+
 	c, err := chroma.NewHTTPClient(
-		chroma.WithBaseURL(fmt.Sprintf("%s:%s", config.ENVS.VectorDBHost, config.ENVS.VectorDBPort)),
+		chroma.WithBaseURL(baseUrl),
 	)
 
 	if err != nil {

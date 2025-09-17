@@ -10,12 +10,13 @@ import (
 
 func Initialize(models ...interface{}) {
 	dsn := fmt.Sprintf(
-		"host=%s user=%s password=%s dbname=%s sslmode=%s",
+		"host=%s user=%s password=%s dbname=%s sslmode=%s port=%s",
 		config.ENVS.DbHost,
 		config.ENVS.DbUser,
 		config.ENVS.DbPass,
 		config.ENVS.DbName,
 		config.ENVS.DbSSLMode,
+		config.ENVS.DbPort,
 	)
 
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})

@@ -14,6 +14,7 @@ type EnvVarConfig struct {
 	DbName                 string `envconfig:"GC_MARK_DB_NAME" required:"true"`
 	DbHost                 string `envconfig:"GC_MARK_DB_HOST" required:"true"`
 	DbSSLMode              string `envconfig:"GC_MARK_DB_SSL_MODE" default:"disable"`
+	DbPort                 string `envconfig:"GC_MARK_DB_PORT" default:"5432"`
 	AuthProviderApiKey     string `envconfig:"GC_MARK_AUTH_KEY" required:"true"`
 	KvStorageToken         string `envconfig:"GC_MARK_KV_STORAGE_TOKEN" required:"true"`
 	CfAccountId            string `envconfig:"GC_MARK_CF_ACCOUNT_ID" required:"true"`
@@ -22,9 +23,10 @@ type EnvVarConfig struct {
 	SentryDsn              string `envconfig:"GC_MARK_SENTRY_DSN" required:"true"`
 	WebhookProviderSecret  string `envconfig:"GC_MARK_CLERK_WH_SIGNING_SECRET" required:"true"`
 	GeminiApiKey           string `envconfig:"GC_MARK_GEMINI_API_KEY" required:"true"`
-	VectorDBHost           string `envconfig:"GC_MARK_VECTOR_DB_HOST" default:"http://localhost"`
+	VectorDBHost           string `envconfig:"GC_MARK_VECTOR_DB_HOST" default:"localhost"`
 	VectorDBPort           string `envconfig:"GC_MARK_VECTOR_DB_PORT" default:"8000"`
 	VectorDBCollectionName string `envconfig:"GC_MARK_VECTOR_DB_COLLECTION_NAME" default:"linked-bookmarks"`
+	IntNetwork             string `envconfig:"GC_MARK_INT_NETWORK" default:"orchestrator-own"`
 }
 
 var ENVS EnvVarConfig
