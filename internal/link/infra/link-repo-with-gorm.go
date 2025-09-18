@@ -182,3 +182,36 @@ func (lr *LinkRepoWithGorm) GetAll(r domain.GetAllLinksRequestDto) (domain.GetAl
 
 	return qr, nil
 }
+
+func (lr *LinkRepoWithGorm) GetManyByIds(r domain.GetManyLinksByIdsRequestDto) ([]domain.Link, error) {
+
+	var links []models.Link
+
+	result := lr.db.
+		Model(&models.Link{}).
+		Select("links.id, links.url, links.summary, links.attempts").
+		Joins("JOIN user_links ul ON links.id = ul.link_id").
+		Joins("JOIN users u ON ul.user_id = u.id ").
+		Where("u.auth_id = ?", r.Subject).
+		Scan(&links)
+
+	if result.Error != nil {
+		return []domain.Link{}, result.Error
+	}
+
+	var domainLinks []domain.Link
+
+	for _, link := range links {
+		domainLinks = append(domainLinks, domain.Link{
+			ID:        link.ID,
+			Url:       link.Url,
+			Summary:   link.Summary,
+			Attempts:  link.Attempts,
+			CreatedAt: link.CreatedAt,
+			UpdatedAt: link.UpdatedAt,
+			DeletedAt: link.DeletedAt.Time,
+		})
+	}
+
+	return domainLinks, nil
+}

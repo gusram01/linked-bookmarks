@@ -44,6 +44,16 @@ type GetLinkRequestDto struct {
 	Subject string `json:"subject"`
 }
 
+type GetManyLinksByIdsRequestDto struct {
+	IDs     []uint `json:"ids"`
+	Subject string `json:"subject"`
+}
+
+type SemanticSearchRequestDto struct {
+	Query   string `json:"s"`
+	Subject string `json:"subject"`
+}
+
 type GetAllLinksRequestDto struct {
 	Subject string `json:"subject"`
 	Limit   uint   `json:"limit"`

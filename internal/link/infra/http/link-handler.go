@@ -16,24 +16,27 @@ import (
 )
 
 type LinkHandler struct {
-	createOneUC  shared.QueryBaseUseCase[domain.NewLinkRequestDto, domain.Link]
-	getOneByIdUC shared.QueryBaseUseCase[domain.GetLinkRequestDto, domain.Link]
-	getAllUC     shared.QueryBaseUseCase[domain.GetAllLinksRequestDto, domain.GetAllQueryResultDto]
-	linkRepo     domain.LinkRepository
+	createOneUC      shared.QueryBaseUseCase[domain.NewLinkRequestDto, domain.Link]
+	getOneByIdUC     shared.QueryBaseUseCase[domain.GetLinkRequestDto, domain.Link]
+	getAllUC         shared.QueryBaseUseCase[domain.GetAllLinksRequestDto, domain.GetAllQueryResultDto]
+	semanticSearchUC shared.QueryBaseUseCase[domain.SemanticSearchRequestDto, []domain.Link]
+	linkRepo         domain.LinkRepository
 }
 
 func newLinkHandler(
 	createUc shared.QueryBaseUseCase[domain.NewLinkRequestDto, domain.Link],
 	getOneUc shared.QueryBaseUseCase[domain.GetLinkRequestDto, domain.Link],
 	getAll shared.QueryBaseUseCase[domain.GetAllLinksRequestDto, domain.GetAllQueryResultDto],
+	semanticSearchUc shared.QueryBaseUseCase[domain.SemanticSearchRequestDto, []domain.Link],
 	linkRepo domain.LinkRepository,
 
 ) *LinkHandler {
 	return &LinkHandler{
-		createOneUC:  createUc,
-		getOneByIdUC: getOneUc,
-		getAllUC:     getAll,
-		linkRepo:     linkRepo,
+		createOneUC:      createUc,
+		getOneByIdUC:     getOneUc,
+		getAllUC:         getAll,
+		semanticSearchUC: semanticSearchUc,
+		linkRepo:         linkRepo,
 	}
 }
 
@@ -42,7 +45,8 @@ func (lh *LinkHandler) registerRoutes(r fiber.Router) {
 
 	lRouter.Use(auth.JwtClerkMiddleware())
 	lRouter.Post("/", lh.createOne)
-	lRouter.Get("/:id", lh.getOne)
+	lRouter.Get("/search", lh.searchLinks)
+	lRouter.Get("/search/:id", lh.getOne)
 	lRouter.Get("/", lh.getAll)
 }
 
@@ -51,8 +55,9 @@ func Bootstrap(r fiber.Router) {
 	createUC := usecases.NewCreateOneLinkUse(repo)
 	getOneUC := usecases.NewGetOneByIdLinkUse(repo)
 	getAllUC := usecases.NewGetAllLinksUse(repo)
+	semanticSearchUC := usecases.NewSemanticLinksSearchUse(repo)
 
-	newLinkHandler(createUC, getOneUC, getAllUC, repo).registerRoutes(r)
+	newLinkHandler(createUC, getOneUC, getAllUC, semanticSearchUC, repo).registerRoutes(r)
 }
 
 func (lh *LinkHandler) createOne(c *fiber.Ctx) error {
@@ -88,6 +93,39 @@ func (lh *LinkHandler) createOne(c *fiber.Ctx) error {
 			nil,
 		),
 	)
+
+}
+
+func (lh *LinkHandler) searchLinks(c *fiber.Ctx) error {
+	claims, err := auth.WithSessionClaims(c)
+	if err != nil {
+		return c.Status(fiber.StatusUnauthorized).JSON(internal.NewGcResponse(nil, err))
+	}
+
+	query := c.Query("s", "")
+	if query == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(internal.NewGcResponse(nil, errors.New("query parameter 's' is required")))
+	}
+
+	l, err := lh.semanticSearchUC.Execute(domain.SemanticSearchRequestDto{
+		Query:   query,
+		Subject: claims.Subject,
+	})
+
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(internal.NewGcResponse(nil, err))
+	}
+
+	return c.Status(fiber.StatusOK).
+		JSON(
+			internal.NewGcResponse(
+				internal.GcMap{
+					"results": l,
+					"query":   query,
+				},
+				nil,
+			),
+		)
 
 }
 
