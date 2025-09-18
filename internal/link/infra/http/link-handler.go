@@ -107,7 +107,7 @@ func (lh *LinkHandler) searchLinks(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).JSON(internal.NewGcResponse(nil, errors.New("query parameter 's' is required")))
 	}
 
-	l, err := lh.semanticSearchUC.Execute(domain.SemanticSearchRequestDto{
+	linksResult, err := lh.semanticSearchUC.Execute(domain.SemanticSearchRequestDto{
 		Query:   query,
 		Subject: claims.Subject,
 	})
@@ -116,16 +116,23 @@ func (lh *LinkHandler) searchLinks(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusInternalServerError).JSON(internal.NewGcResponse(nil, err))
 	}
 
-	return c.Status(fiber.StatusOK).
-		JSON(
-			internal.NewGcResponse(
-				internal.GcMap{
-					"results": l,
-					"query":   query,
-				},
-				nil,
-			),
-		)
+	var responseLinks domain.GetAllLinksResponseDto
+
+	responseLinks.TotalCount = int64(len(linksResult))
+	responseLinks.TotalPages = 1
+
+	for _, link := range linksResult {
+		responseLinks.Links = append(
+			responseLinks.Links,
+			internal.GcMap{
+				"id":       link.ID,
+				"url":      link.Url,
+				"summary":  link.Summary,
+				"attempts": link.Attempts,
+			})
+	}
+
+	return c.Status(fiber.StatusOK).JSON(internal.NewGcResponse(responseLinks, nil))
 
 }
 
