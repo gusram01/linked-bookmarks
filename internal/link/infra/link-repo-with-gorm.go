@@ -192,7 +192,7 @@ func (lr *LinkRepoWithGorm) GetManyByIds(r domain.GetManyLinksByIdsRequestDto) (
 		Select("links.id, links.url, links.summary, links.attempts").
 		Joins("JOIN user_links ul ON links.id = ul.link_id").
 		Joins("JOIN users u ON ul.user_id = u.id ").
-		Where("u.auth_id = ?", r.Subject).
+		Where("u.auth_id = ? AND links.id IN ?", r.Subject, r.IDs).
 		Scan(&links)
 
 	if result.Error != nil {
