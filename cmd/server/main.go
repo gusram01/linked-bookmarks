@@ -31,6 +31,7 @@ func main() {
 	config.LoadConfigFile()
 
 	app := fiber.New(fiber.Config{
+		Prefork: true,
 		AppName: "linked-bookmarks",
 	})
 
